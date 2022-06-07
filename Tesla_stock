@@ -1,0 +1,57 @@
+# Using the Ticker function to create a ticker object.
+# ticker symbol of tesla is TSLA
+tesla_data = yf.Ticker('TSLA')
+
+# history function helps to extract stock information.
+# setting period parameter to max to get information for the maximum amount of time.
+tsla_data = tesla_data.history(period='max')
+
+# Resetting the index
+tsla_data.reset_index(inplace=True)
+
+# display the first five rows
+tsla_data.head()
+
+
+# using requests library to download the webpage
+url='https://www.macrotrends.net/stocks/charts/TSLA/tesla/revenue'
+
+# Save the text of the response
+html_text = requests.get(url).text
+
+# Parse the html data using beautiful_soup.
+soup=BeautifulSoup(html_text, 'html5lib')
+
+
+# Using beautiful soup extract the table with Tesla Quarterly Revenue.
+# creating new dataframe
+tsla_revenue = pd.DataFrame(columns=["Date", "Revenue"])
+
+tables = soup.find_all('table')
+table_index=0
+
+for index, table in enumerate(tables):
+    if ('Tesla Quarterly Revenue'in str(table)):
+        table_index=index
+        
+for row in tables[table_index].tbody.find_all("tr"):
+    col = row.find_all("td")
+    if (col!=[]):
+        date =col[0].text
+        # to remove comma and dollar sign
+        revenue =col[1].text.replace("$", "").replace(",", "")
+        tsla_revenue=tsla_revenue.append({'Date':date,'Revenue':revenue},
+                                           ignore_index=True)
+
+# displaying dataframe
+tsla_revenue
+
+
+tsla_revenue = tsla_revenue[tsla_revenue['Revenue']!='']
+tsla_revenue
+
+
+make_graph(tesla_data, tsla_revenue, 'Tesla')
+
+
+
